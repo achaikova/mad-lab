@@ -18,6 +18,7 @@ class LanguageModel(nn.Module):
         norm (nn.Module, optional): Normalization layer.
         position_embeds (tp.Callable, optional): Positional embeddings.
         embed_drop_rate (float, optional): Dropout rate for the token embeddings.
+
     """
     def __init__(self,
         vocab_size: int,
@@ -28,6 +29,7 @@ class LanguageModel(nn.Module):
         norm: nn.Module = RMSNorm,
         position_embeds: tp.Callable = None,
         embed_drop_rate: float = 0.0,
+        titans: bool = False,
         *args, **kwargs
     ) -> None:
         super().__init__()
@@ -50,6 +52,7 @@ class LanguageModel(nn.Module):
         
         self.unembed = nn.Sequential(norm(layer_cfg['dim']), nn.Linear(dim, vocab_size))
         self.apply(self._init_weights)
+        self.titans = titans
         
     def embed(self,
         inputs_ids: torch.Tensor,
@@ -66,6 +69,11 @@ class LanguageModel(nn.Module):
     
     def forward(self, inputs_ids: torch.Tensor) -> torch.Tensor:
         x = self.embed(inputs_ids)
+        # if self.titans:
+        #     for i, layer in enumerate(self.model):
+        #         x_norm = layer[0](x)
+        #         x = layer[1](x_norm, reduce_str=i==len(self.model)-1)
+        # else:
         for layer in self.model:
             x = x + layer(x)
         return self.unembed(x)
