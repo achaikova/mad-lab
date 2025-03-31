@@ -10,3 +10,6 @@ opt_einsum
 ray
 scipy
 wandb
+pandas 
+causal-conv1d
+flash-attn
